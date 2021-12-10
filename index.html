@@ -59,25 +59,26 @@
     <!-- A heading for app -->
     <div class="container my-4">
         <div class="todo text-center">
-            <h2 id="title">TODOs List</h2>
+            <h2 id="head-title">TODOs List</h2>
         </div>
 
         <!-- A form to add in list -->
-        
-            <div class="mb-3 form-group">
-                <label for="title" class="form-label">Title</label>
-                <input type="text" class="form-control" id="title" aria-describedby="emailHelp">
-                <div id="emailHelp" class="form-text">add an item to the list</div>
-            </div>
-            <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" rows="3"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary" id="add">Add to list</button>
-        
+
+        <div class="mb-3 form-group">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" aria-describedby="emailHelp">
+            <div id="emailHelp" class="form-text">add an item to the list</div>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="add">Add to list</button>
+        <button type="submit" class="btn btn-danger" id="clear">clear list</button>
+
 
         <!-- Table for showing items -->
-        <table class="table text-center my-4">
+        <table class="table table-dark text-center my-4" id="item-list">
             <thead>
                 <tr>
                     <th scope="col">S.No.</th>
@@ -86,7 +87,7 @@
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="table-body">
                 <tr>
                     <th scope="row">1</th>
                     <td>Get some coffee</td>
@@ -97,32 +98,77 @@
         </table>
     </div>
 
-    
-    
+
+
 
     <!-- Bootstrap Javascript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
     </script>
     <script>
-        let add = document.getElementById('add');
-        let item = document.getElementById('title').value;
-        let desc = document.getElementById('description').value;
-        add.addEventListener("click", ()=>{
-            console.log(item)
-            console.log(desc)
-            if(localStorage.getItem('itemsJson')==null){
-                itemsJsonArray = [];
-                itemsJsonArray.push([item,desc]);
-                localStorage.setItem('itemsJson',JSON.stringify(itemsJsonArray));
+        function getAndUpdate(){
+            item = document.getElementById('title').value;
+            desc = document.getElementById('description').value;
+            if (localStorage.getItem('itemsJson') == null) {
+                    itemsJsonArray = [];
+                    itemsJsonArray.push([item, desc]);
+                    localStorage.setItem('itemsJson', JSON.stringify(itemsJsonArray));
+                } else {
+                    itemsJsonArrayStr = localStorage.getItem('itemsJson');
+                    itemsJsonArray = JSON.parse(itemsJsonArrayStr);
+                    itemsJsonArray.push([item, desc]);
+                    localStorage.setItem('itemsJson', JSON.stringify(itemsJsonArray));
+                }
+                update();
+        }
+        function update(){
+            
+            // console.log(typeof item)
+            // console.log(typeof desc)
+            itemsJsonArray = JSON.parse(localStorage.getItem('itemsJson'));
+
+            // Adding it to table
+            let tableBody = document.getElementById('table-body');
+            let str = "";
+            if(itemsJsonArray==null){
+                tableBody.innerHTML=str;
+                return;
             }
-            else {
-                itemsJsonArrayStr = localStorage.getItem('itemsJson');
-                itemsJsonArray = JSON.parse(itemsJsonArrayStr);
-                itemsJsonArray.push([item,desc]);
-                localStorage.setItem('itemsJson',JSON.stringify(itemsJsonArray));
+            itemsJsonArray.forEach((element, index) => {
+                str += `
+                    <tr>
+                        <th scope="row">${index + 1}</th>
+                        <td>${element[0]}</td>
+                        <td>${element[1]}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="del(${index})">Delete</button></td>
+                    </tr>`;
+            });
+            tableBody.innerHTML = str;
+        }
+
+        del = (item)=>{
+            console.log("Delete: "+item);
+            itemsJsonArrayStr = localStorage.getItem('itemsJson');
+            itemsJsonArray = JSON.parse(itemsJsonArrayStr);
+            // delete from the table
+            itemsJsonArray.splice(item-1,1);
+            localStorage.setItem('itemsJson',JSON.stringify(itemsJsonArray));
+            update();
+        };
+
+        clearList = ()=> {
+            decision = confirm("Are you sure to clear the list?");
+            if(decision){
+                localStorage.clear();
             }
-        });
+            update();
+        }
+
+        add = document.getElementById('add');
+        add.addEventListener("click", getAndUpdate);
+        clear = document.getElementById('clear');
+        clear.addEventListener("click", clearList);
+        update();
     </script>
 </body>
 
